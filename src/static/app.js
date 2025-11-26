@@ -32,7 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
         activityCard.appendChild(schedule);
 
         const spotsLeft = details.max_participants - details.participants.length;
+        const safeId = name.replace(/\W/g, "-");
         const availability = document.createElement("p");
+        availability.id = `availability-${safeId}`;
         availability.innerHTML = `<strong>Availability:</strong> ${spotsLeft} spots left`;
         activityCard.appendChild(availability);
 
@@ -49,14 +51,66 @@ document.addEventListener("DOMContentLoaded", () => {
         if (details.participants && details.participants.length > 0) {
           const ul = document.createElement("ul");
           ul.className = "participants-list";
-          ul.style.margin = "6px 0 0 18px";
-          ul.style.padding = "0";
-          ul.style.listStyle = "disc";
+          ul.id = `participants-${safeId}`;
           details.participants.forEach((p) => {
             const li = document.createElement("li");
-            li.textContent = p;
-            li.style.margin = "4px 0";
-            li.style.fontSize = "0.92rem";
+
+            const emailSpan = document.createElement("span");
+            emailSpan.className = "participant-email";
+            emailSpan.textContent = p;
+            li.appendChild(emailSpan);
+
+            const btn = document.createElement("button");
+            btn.className = "delete-btn";
+            btn.type = "button";
+            btn.title = "Unregister";
+            btn.innerHTML = "✕";
+
+            btn.addEventListener("click", async () => {
+              try {
+                const resp = await fetch(`/activities/${encodeURIComponent(name)}/unregister?email=${encodeURIComponent(p)}`, {
+                  method: "POST",
+                });
+
+                const result = await resp.json();
+
+                if (resp.ok) {
+                  li.remove();
+
+                  const availabilityEl = document.getElementById(`availability-${safeId}`);
+                  if (availabilityEl) {
+                    const match = availabilityEl.textContent.match(/(\d+)/);
+                    if (match) {
+                      const current = parseInt(match[1], 10);
+                      availabilityEl.innerHTML = `<strong>Availability:</strong> ${current + 1} spots left`;
+                    }
+                  }
+
+                  if (ul.children.length === 0) {
+                    const muted = document.createElement("p");
+                    muted.textContent = "No participants yet.";
+                    muted.className = "muted";
+                    participantsSection.replaceChild(muted, ul);
+                  }
+
+                  messageDiv.textContent = result.message || "Unregistered successfully";
+                  messageDiv.className = "success";
+                  messageDiv.classList.remove("hidden");
+                  setTimeout(() => messageDiv.classList.add("hidden"), 4000);
+                } else {
+                  messageDiv.textContent = result.detail || result.message || "Failed to unregister";
+                  messageDiv.className = "error";
+                  messageDiv.classList.remove("hidden");
+                }
+              } catch (err) {
+                console.error("Error unregistering:", err);
+                messageDiv.textContent = "Failed to unregister. Please try again.";
+                messageDiv.className = "error";
+                messageDiv.classList.remove("hidden");
+              }
+            });
+
+            li.appendChild(btn);
             ul.appendChild(li);
           });
           participantsSection.appendChild(ul);

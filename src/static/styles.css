@@ -87,9 +87,9 @@ section h3 {
 }
 
 .participants-list {
-  margin: 6px 0 0 20px;
+  margin: 6px 0 0 0;
   padding: 0;
-  list-style: disc;
+  list-style: none;
   color: #333;
 }
 
@@ -97,6 +97,28 @@ section h3 {
   margin: 4px 0;
   font-size: 0.9rem;
   word-break: break-word;
+}
+
+/* Delete/unregister button next to each participant */
+.delete-btn {
+  margin-left: 10px;
+  background: transparent;
+  border: none;
+  color: #c62828;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.delete-btn:hover {
+  background: rgba(198,40,40,0.08);
+}
+
+.participant-email {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .muted {
